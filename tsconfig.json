@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    // "experimentalDecorators": true,                   
+    // "emitDecoratorMetadata": true,                    
+
+    /* Input */
+    "module": "node16",
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src",
+    "moduleResolution": "node16",
+    "paths": {},
+
+    /* Out */
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    /* Lib */
+    //     "skipDefaultLibCheck": true,
+    "skipLibCheck": true
+  }
+}
