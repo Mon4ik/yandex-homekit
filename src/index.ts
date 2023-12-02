@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import {YandexBridge} from "./YandexBridge.js";
 import {program} from '@commander-js/extra-typings';
 import qrcode from "qrcode-terminal"
