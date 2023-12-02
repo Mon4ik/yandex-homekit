@@ -37,7 +37,7 @@ export class YandexBridge {
 
 
 		this.bridge.on("paired", () => {
-			console.log("🔗 Bridge successfully paired!")
+			// console.log("🔗 Bridge successfully paired!")
 		})
 
 		this.bridgeSetup(mac)

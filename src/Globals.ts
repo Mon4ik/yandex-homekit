@@ -2,6 +2,7 @@ import path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import {Adapter, getAdapters} from "./adapters/index.js";
+import {Logger, pino} from "pino";
 
 export type ConfigFile = {
 	client: {
@@ -32,8 +33,9 @@ const CONFIG_FILE_INITIAL: ConfigFile = {
 
 export class Globals {
 	private static customStoragePath?: string;
-	private static config: ConfigFile = CONFIG_FILE_INITIAL
 	private static _adapters: Adapter[] = []
+	private static _debug = false
+	private static _logger: Logger
 
 	static accessTokenPath(): string {
 		return path.join(Globals.storagePath(), "access-token.json");
@@ -51,13 +53,37 @@ export class Globals {
 		return Globals.customStoragePath ? Globals.customStoragePath : path.join(os.homedir(), ".yandex-homekit");
 	}
 
+	static debug(): boolean {
+		return Globals._debug
+	}
+
+	static setDebug(value: boolean) {
+		Globals._debug = value
+	}
+
+	private static initLogger() {
+		this._logger = pino({
+			transport: {
+				target: 'pino-pretty',
+				options: {
+					colorize: true
+				}
+			},
+			level: this._debug ? "trace" : "info"
+		})
+	}
+	public static getLogger() {
+		if (!this._logger) this.initLogger()
+		return this._logger
+	}
+
 	public static setStoragePath(...storagePathSegments: string[]): void {
 		Globals.customStoragePath = path.resolve(...storagePathSegments);
 	}
 
 	public static getConfig(): ConfigFile {
 		if (!fs.existsSync(this.configPath())) {
-			console.log(CONFIG_FILE_INITIAL)
+
 			fs.writeFileSync(
 				this.configPath(),
 				Buffer.from(JSON.stringify(CONFIG_FILE_INITIAL, null, 2), "utf-8")

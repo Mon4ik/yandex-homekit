@@ -70,15 +70,15 @@ export class Device {
 		const adapters = Globals.adapters
 
 		for (const capability of this._capabilities) {
-			console.log(JSON.stringify(capability, null, "\t"))
+			Globals.getLogger().trace(capability)
 			if (capability.state === null) {
-				console.warn(chalk.yellow`${chalk.bold("[ WARN ]")} The capability "${capability.type}" is null. Please, check on yandex, that's you setup device "${this._initialDevice.name}".`)
+				Globals.getLogger().warn(`The capability "${capability.type}" is null. Please, check on yandex, that's you setup device "${this._initialDevice.name}".`)
 				continue
 			}
 
 			const adapter = adapters.find((adp) => adp.verify(capability))
 			if (!adapter) {
-				console.warn(chalk.yellow`${chalk.bold("[ WARN ]")} The capability "${capability.type}" isn't supporting (no such adapters for it). So you cannot control this capability through HomeKit. But it can be contained in new yandex-homekit version, so check it out.`)
+				Globals.getLogger().warn(`The capability "${capability.type}" isn't supporting (no such adapters for it). So you cannot control this capability through HomeKit. But it CAN be implemented in new yandex-homekit version, so check it out.`)
 				continue
 			}
 
@@ -88,7 +88,7 @@ export class Device {
 			characteristic.on("get", (cb) => {
 				try {
 					const result = adapter.get(capability, this)
-					console.log(`[G] WE RN GETTING ${characteristic.displayName} (${result})`)
+					Globals.getLogger().trace(`[GET] ${characteristic.displayName} < ${result}`)
 					cb(undefined, result)
 				} catch (e) {
 					cb(e)
@@ -97,10 +97,12 @@ export class Device {
 
 			characteristic.on("set", (value, cb) => {
 				try {
+					Globals.getLogger().trace(`[SET] ${characteristic.displayName} < ${value}`)
+
 					adapter.set(value, capability, this)
 					cb(null)
 				} catch (e) {
-					console.log("[]", e)
+					Globals.getLogger().error(`[SET] ${characteristic.displayName} < (ERR!)`, e)
 					cb(e)
 				}
 			})

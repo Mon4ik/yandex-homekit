@@ -20,14 +20,13 @@ export class YandexAPI {
 			method: "GET",
 			headers: {
 				"Authorization": `Bearer ${this.token}`
-			}
+			},
+			validateStatus: () => true
 		})
 
 		if (resp.data.status === "error") {
-			console.error(chalk.red.bold`Error while getting devices`)
-			console.error(chalk.red` Please verify your token!`)
-			console.error(chalk.red` You can also request new at this URL:`)
-			console.error(chalk.red`  http://${ip.address('private')}:13370/`)
+			Globals.getLogger().error(chalk.bold`Error while getting devices`)
+			Globals.getLogger().error(` Please verify your token!`)
 
 			process.exit(1)
 		}
@@ -46,13 +45,9 @@ export class YandexAPI {
 			validateStatus: () => true
 		})
 
-			console.log(JSON.stringify(devices, null, "\t"))
 		if (resp.data.status === "error") {
-			console.error(chalk.red.bold`Error while updating devices`)
-			console.error(chalk.red` > Details: ${resp.data.message}`)
-			console.error(chalk.red` Please verify your token!`)
-			console.error(chalk.red` You can also request new at this URL:`)
-			console.error(chalk.red`  http://${ip.address('private')}:13370/`)
+			Globals.getLogger().error(`Error while updating devices.`, resp.data.message)
+			Globals.getLogger().error(`Please verify your token!`)
 
 			process.exit(1)
 		}
@@ -85,8 +80,7 @@ export class YandexAPI {
 		})
 
 		if (resp.data.error) {
-			console.error(chalk.red.bold("error while refreshing token :("))
-			console.error(chalk.red`${chalk.bold(resp.data.error)}: ${resp.data.error_description}`)
+			Globals.getLogger().error(chalk.bold("error while refreshing token :("), resp.data.error, resp.data.error_description)
 
 			process.exit(1)
 		}
@@ -119,13 +113,10 @@ export class YandexAPI {
 		})
 
 		if (resp.data.error) {
-			console.error(chalk.red.bold("error while getting token :("))
-			console.error(chalk.red(resp.data.error_description))
+			Globals.getLogger().error(chalk.bold("error while getting token :("), resp.data.error_description)
 
 			process.exit(1)
 		}
-
-		console.log(resp.data)
 
 		Globals.updateOauth({
 			accessToken: resp.data.access_token,

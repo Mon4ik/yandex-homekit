@@ -16,7 +16,6 @@ import {YandexDevice} from "../types.js";
 export class YandexController {
 	private readonly bridge: hap.Bridge
 
-	private oauthServer = new OAuthServer((code) => this.yandexAPI.exchangeToken(code))
 	private yandexAPI: YandexAPI
 
 	private refreshAt = Number.POSITIVE_INFINITY
@@ -51,7 +50,9 @@ export class YandexController {
 			await this.refreshToken()
 		}
 
-		// device sync
+		// device sync step
+
+		// getting devices info
 		const yandexDevices = await this.yandexAPI.getDevices()
 
 		for (const yandexDevice of yandexDevices) {
@@ -64,15 +65,18 @@ export class YandexController {
 				const yandexCapability = yandexDevice.capabilities.find((cap) => cap.type === capability.type)
 				if (!yandexCapability) continue
 
+				// sync mounted capabilities with yandex's
 				capability.syncWithYandex(yandexCapability)
 			}
 		}
 
 		// sendin' to yandex
-		const devicesActions = this.mountedDevices.map((dev) => ({
-			id: dev.id,
-			actions: dev.jsonActions()
-		})).filter((act) => act.actions.length !== 0)
+		const devicesActions = this.mountedDevices
+			.map((dev) => ({
+				id: dev.id,
+				actions: dev.jsonActions() // getting any new updates
+			}))
+			.filter((act) => act.actions.length !== 0)
 
 		if (devicesActions.length === 0) return
 
@@ -104,15 +108,16 @@ export class YandexController {
 
 		if (!oauth.accessToken || Date.now() >= oauth.expiresAt) {
 			// token expired :(
-			console.error(chalk.red.bold` ================== TOKEN EXPIRED! ==================`)
-			console.error(chalk.red` (*) Please, go to local server at http://${ip.address('private')}:13370/`)
-			console.error(chalk.red`     and authorize at Yandex OAuth to obtain token`)
-			console.error(chalk.red` (!) Also verify, that you placed client.id and client.secret in`)
-			console.error(chalk.red`     ${Globals.configPath()} file`)
-			console.error(chalk.red.bold` ====================================================`)
+			Globals.getLogger().error("Token is expired. Please request new.")
 
-			this.oauthServer.start()
-			return
+			console.error("\n\n")
+			console.error(chalk.red.bold` ================================ TOKEN EXPIRED! ================================`)
+			console.error(chalk.red`  (*) Run \`${chalk.underline("yandex-homekit oauth")}\` to start oauth server`)
+			console.error(chalk.red`  (!) Also verify the file: ${chalk.underline(Globals.configPath())}!`)
+			console.error(chalk.red`      This file need to contain all the YandexOAuth client settings (id, secret)`)
+			console.error(chalk.red.bold` ================================================================================`)
+			
+			process.exit(1)
 		}
 
 		await this.refreshToken()

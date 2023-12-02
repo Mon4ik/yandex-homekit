@@ -1,9 +1,15 @@
 import {YandexBridge} from "./YandexBridge.js";
-import {program} from "commander";
-
+import {program} from '@commander-js/extra-typings';
 import qrcode from "qrcode-terminal"
 import chalk from "chalk";
+import {Globals} from "./Globals.js";
+import * as fs from "fs";
 
+import Enquirer from "enquirer"
+import {OAuthServer} from "./oauth/index.js";
+import ip from "ip";
+
+import open from "open";
 
 program
 	.name('yandex-homekit')
@@ -13,34 +19,96 @@ program
 program.command('cleanup')
 	.description('Clean persist, or clean all app settings (by default cleans only cache)')
 	.option("--all", "DELETES EVERYTHING (configs, cache)! Be careful!")
-	.action((options) => {
-		console.log("TODO")
-		console.log(options)
+	.option("-f, --force", "Delete without questions")
+	.action(async (options) => {
+		if (options.all) {
+			if (!options.force) {
+				//@ts-ignore
+				const prompt = new Enquirer.Confirm({
+					name: 'question',
+					message: chalk.red`Delete ${chalk.bold(Globals.storagePath())}?`
+				});
+
+				const answer = await prompt.run()
+				if (!answer) {
+					console.log(chalk.red("aborting..."))
+					process.exit(0)
+				}
+			}
+			fs.rmSync(Globals.storagePath(), {recursive: true, force: true})
+		} else {
+			if (!options.force) {
+
+				//@ts-ignore
+				const prompt = new Enquirer.Confirm({
+					name: 'question',
+					message: chalk.red`Delete ${chalk.bold(Globals.persistPath())}?`
+				});
+
+				const answer = await prompt.run()
+				if (!answer) {
+					console.log(chalk.red("aborting..."))
+					process.exit(0)
+				}
+			}
+
+			fs.rmSync(Globals.persistPath(), {recursive: true, force: true})
+		}
+
 	});
+
+program.command('oauth')
+	.description("Starts OAuth server for initial authorization")
+	.option("--port <port>", "Change port to start server at", "13370")
+	.option("-o", "Opens server in browser")
+	.action(async (options) => {
+		const server = new OAuthServer()
+
+		server.start(parseInt(options.port as string))
+		console.log(chalk.green(`Server started!`))
+		console.log(chalk.yellow(' > ' + chalk.bold.underline(`${ip.address("private")}:${options.port}`)))
+
+		if (options.o) {
+			await open(`http://${ip.address("private")}:${options.port}`);
+		}
+
+		await server.wait()
+		console.log("")
+		console.log(chalk.green.bold`=== Token stored! ===`)
+		console.log(chalk.green`Now you can run ${chalk.underline("yandex-homekit")} normally`)
+		process.exit(0)
+	})
+
+// TODO: dumps for issues, etc
+// program.command("capability-dump").description("Dumps all devices and capabilities for debuging, adding new features")
 
 program.command('start')
 	.description('Starts bridge')
-	.option("-q", "Start quietly (no qrcodes, codes)")
+	.option("-q", "Start quietly (no QRCodes, codes)")
 	.option("-Q, --noQRCode", "Not displays pairing QRCode")
 	.option("--debug", "Enables debug mode")
 	.action((options) => {
-		// console.log(options)
+		Globals.setDebug(options.debug ?? false)
 
 		const bridge = new YandexBridge()
 
-		bridge.publish().then(([info, uri]) => {
-			console.log(`🚀 Bridge started at port :${info.port}`)
+		bridge.publish()
+			.then(([info, uri]) => {
+				if (options.q) return
 
-			qrcode.generate(
-				uri,
-				{small: true},
-				(qrcode) => {
-					console.log(qrcode)
-					console.log(`Or use this code: ${chalk.underline.bold(info.pincode)}`)
+				Globals.getLogger().info(`🚀 Bridge started at port :${info.port}`)
+
+				if (!options.noQRCode) {
+					qrcode.generate(
+						uri,
+						{small: true},
+						(qrcode) => {
+							console.log(qrcode)
+							console.log(`Or use this code: ${chalk.underline.bold(info.pincode)}`)
+						}
+					)
 				}
-			)
-		})
-		console.log(options)
+			})
 	});
 
 program.parse(process.argv);

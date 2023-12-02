@@ -22,10 +22,12 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^11.1.0",
     "@types/lodash": "^4.14.202",
     "axios": "^1.6.2",
     "chalk": "4.1.2",
     "commander": "^11.1.0",
+    "enquirer": "^2.4.1",
     "express": "^4.18.2",
     "glob": "^10.3.10",
     "got": "^13.0.0",
@@ -33,6 +35,9 @@
     "ip": "^1.1.8",
     "lodash": "^4.17.21",
     "macaddress": "^0.5.3",
+    "open": "^9.1.0",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
     "qrcode-terminal": "^0.12.0",
     "qs": "^6.11.2"
   }
