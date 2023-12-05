@@ -13,6 +13,18 @@
      ```shell
      npm i -g yandex-homekit
      ```
+   - Вручную:
+     ```shell
+     gh repo clone Mon4ik/yandex-homekit
+     # git clone https://github.com/Mon4ik/yandex-homekit.git
+     
+     cd yandex-homekit
+     pnpm i
+     pnpm build
+     pnpm link .
+     
+     yandex-homekit
+     ```
    - Docker:
      _пока что нету, сорри)_
 2. Первый запуск для создания конфигов

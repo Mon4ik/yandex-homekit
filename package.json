@@ -7,6 +7,15 @@
   "keywords": ["yandex", "homekit", "hap-nodejs", "yandex-iot", "iot", "homekit-bridge"],
   "license": "MIT",
 
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mon4ik/yandex-homekit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mon4ik/yandex-homekit/issues"
+  },
+  "homepage": "https://github.com/Mon4ik/yandex-homekit#readme",
+
   "main": "./dist/index.js",
   "files": [
     "dist/**/*",
