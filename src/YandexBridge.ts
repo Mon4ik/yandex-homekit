@@ -1,13 +1,11 @@
 import * as hap from "hap-nodejs";
 import macaddress from "macaddress";
-import {YandexAPI} from "./yandex/api.js";
+
 import {HAPStorage} from "hap-nodejs";
 import {Globals} from "./Globals.js";
 import {YandexController} from "./yandex/controller.js";
 
-const Accessory = hap.Accessory;
 const Characteristic = hap.Characteristic;
-// const CharacteristicEventTypes = hap.CharacteristicEventTypes;
 const Service = hap.Service;
 
 export class YandexBridge {

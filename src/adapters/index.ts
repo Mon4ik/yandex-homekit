@@ -4,7 +4,6 @@ import {fileURLToPath} from 'url';
 import {glob} from "glob";
 import {Capability} from "../Capability.js";
 import {Device} from "../Device.js";
-import {CapabilityEnum} from "../types.js";
 import {Characteristic, CharacteristicProps, CharacteristicValue, WithUUID} from "hap-nodejs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

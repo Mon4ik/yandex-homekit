@@ -11,6 +11,7 @@ import {OAuthServer} from "./oauth/index.js";
 import ip from "ip";
 
 import open from "open";
+import {checkForUpdates} from "./utils.js";
 
 program
 	.name('yandex-homekit')
@@ -86,10 +87,11 @@ program.command('oauth')
 program.command('start')
 	.description('Starts bridge')
 	.option("-q", "Start quietly (no QRCodes, codes)")
-	.option("-Q, --noQRCode", "Not displays pairing QRCode")
+	.option("-U, --noUpdates", "Don't check updates")
 	.option("--debug", "Enables debug mode")
-	.action((options) => {
+	.action(async (options) => {
 		Globals.setDebug(options.debug ?? false)
+		if (!options.noUpdates) await checkForUpdates()
 
 		const bridge = new YandexBridge()
 
@@ -99,16 +101,14 @@ program.command('start')
 
 				Globals.getLogger().info(`🚀 Bridge started at port :${info.port}`)
 
-				if (!options.noQRCode) {
-					qrcode.generate(
-						uri,
-						{small: true},
-						(qrcode) => {
-							console.log(qrcode)
-							console.log(`Or use this code: ${chalk.underline.bold(info.pincode)}`)
-						}
-					)
-				}
+				qrcode.generate(
+					uri,
+					{small: true},
+					(qrcode) => {
+						console.log(qrcode)
+						console.log(`Or use this code: ${chalk.underline.bold(info.pincode)}`)
+					}
+				)
 			})
 	});
 

@@ -1,12 +1,12 @@
 import _ from "lodash"
 
-import type {YandexBaseCapability, YandexCapability, YandexDevice} from "./types.js";
+import type {YandexCapability} from "./types.js";
 
 export class Capability {
-	private _capability: YandexCapability
+	private _capability: YandexCapability.Any
 	private _pendingActions: Map<string, Record<string, any>>
 
-	constructor(initialCapability: YandexCapability, pendingActions: Map<string, Record<string, any>>) {
+	constructor(initialCapability: YandexCapability.Any, pendingActions: Map<string, Record<string, any>>) {
 		this._capability = initialCapability
 		this._pendingActions = pendingActions
 	}
@@ -38,7 +38,7 @@ export class Capability {
 	 *
 	 * @internal
 	 */
-	syncWithYandex(yandexCapability: YandexCapability) {
+	syncWithYandex(yandexCapability: YandexCapability.Any) {
 		// --- We have 3 ways in syncing ---
 
 		// 1. The state and parameters are equal
@@ -51,6 +51,7 @@ export class Capability {
 		if (yandexCapability.last_updated >= this.last_updated) {
 			// then we sync ours
 			this._capability = yandexCapability
+			return;
 		}
 
 		// 3. Updated timestamp on yandex is lower, than local

@@ -3,10 +3,8 @@ import qs from "qs"
 import chalk from "chalk";
 
 import {Globals} from "../Globals.js";
-import {Device} from "../Device.js";
-import ip from "ip";
 
-import type {GetDevicesResponse, YandexResponse} from "../types.js";
+import type {GetDevicesResponse} from "../types.js";
 
 export class YandexAPI {
 	public get token() {

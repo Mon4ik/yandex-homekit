@@ -1,11 +1,9 @@
-import {OAuthServer} from "../oauth/index.js";
-import ip from "ip";
+import * as hap from "hap-nodejs";
 import chalk from "chalk";
 
-import {YandexAPI} from "./api.js";
 import {Device} from "../Device.js";
 import {Globals} from "../Globals.js";
-import * as hap from "hap-nodejs";
+import {YandexAPI} from "./api.js";
 import {YandexDevice} from "../types.js";
 
 /*
@@ -116,7 +114,7 @@ export class YandexController {
 			console.error(chalk.red`  (!) Also verify the file: ${chalk.underline(Globals.configPath())}!`)
 			console.error(chalk.red`      This file need to contain all the YandexOAuth client settings (id, secret)`)
 			console.error(chalk.red.bold` ================================================================================`)
-			
+
 			process.exit(1)
 		}
 
