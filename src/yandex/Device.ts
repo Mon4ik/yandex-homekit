@@ -1,9 +1,9 @@
 import {Accessory, Categories, Characteristic, Service} from "hap-nodejs";
-import {SERVICE_MAP} from "./utils.js";
+import {SERVICE_MAP} from "../utils.js";
 import {Capability} from "./Capability.js";
 
-import type {YandexDevice} from "./types.js";
-import {Globals} from "./Globals.js";
+import type {YandexDevice} from "../types.js";
+import {Globals} from "../Globals.js";
 import chalk from "chalk";
 import * as hap from "hap-nodejs";
 import _ from "lodash";

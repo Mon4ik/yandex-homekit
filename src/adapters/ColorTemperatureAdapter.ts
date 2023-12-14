@@ -1,8 +1,9 @@
 import {Adapter} from "./index.js";
-import {Capability} from "../Capability.js";
-import {Device} from "../Device.js";
-import {CapabilityEnum, YandexOnOffCapability, YandexRangeBrightness} from "../types.js";
+import {Capability} from "../yandex/Capability.js";
+import {Device} from "../yandex/Device.js";
 import {Characteristic, CharacteristicProps, Formats, Perms} from "hap-nodejs";
+
+import {YandexCapability} from "../types.js";
 
 export default class ColorTemperatureAdapter extends Adapter {
 	public readonly characteristic = Characteristic.ColorTemperature
@@ -11,8 +12,10 @@ export default class ColorTemperatureAdapter extends Adapter {
 		return (value - r1[0]) * (r2[1] - r2[0]) / (r1[1] - r1[0]) + r2[0];
 	}
 
-	verify(capability: any): boolean {
-		return capability.type === CapabilityEnum.ColorSetting && !!(capability.parameters?.temperature_k);
+	verify(capability: Capability): boolean {
+		return capability.type === YandexCapability.Type.ColorSetting
+			&& !!(capability.parameters?.temperature_k)
+			&& !(capability.parameters.color_model);
 	}
 
 	getProps(capability: any): CharacteristicProps {
@@ -26,14 +29,14 @@ export default class ColorTemperatureAdapter extends Adapter {
 
 	get(capability: Capability, device: Device): number {
 		const state = capability.state as { value: number }
-		const parameters = capability.parameters as { temperature_k: { min: number, max: number }}
+		const parameters = capability.parameters as { temperature_k: { min: number, max: number } }
 		const homekitProps = device.homekitService.getCharacteristic(this.characteristic).props
 
 		return this.convertRange(state.value, [parameters.temperature_k.max, parameters.temperature_k.min], [homekitProps.minValue, homekitProps.maxValue])
 	}
 
 	set(value: number, capability: Capability, device: Device): void {
-		const parameters = capability.parameters as { temperature_k: { min: number, max: number }}
+		const parameters = capability.parameters as { temperature_k: { min: number, max: number } }
 		const homekitProps = device.homekitService.getCharacteristic(this.characteristic).props
 
 		const newValue = Math.round(this.convertRange(value, [homekitProps.minValue, homekitProps.maxValue], [parameters.temperature_k.max, parameters.temperature_k.min]))

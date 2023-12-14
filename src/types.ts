@@ -10,77 +10,72 @@ export type YandexResponse<T> =
 	}
 	| ({ status: "ok" } & T)
 
-export type YandexOnlyRequiredCapability<T, D> = {
-	reportable: boolean,
-	retrievable: boolean,
-	last_updated: number,
-	type: T
-} & D
+export namespace YandexCapability {
+	export type Any = OnOff | Range | ColorSetting
 
-export type YandexBaseCapability<T, S, P> = {
-	reportable: boolean,
-	retrievable: boolean,
-	type: T,
-	state: S,
-	parameters: P,
-	last_updated: number
-}
+	export type Base<T> = {
+		reportable: boolean,
+		retrievable: boolean,
+		last_updated: number
 
-export type YandexOnOffCapability = YandexBaseCapability<
-	CapabilityEnum.OnOff,
-	{
-		instance: "on",
-		value: boolean
-	},
-	{
-		split: boolean
+		type: Type,
+		state: any,
+		parameters: any
+	} & T // & { type: T, state: S, parameters: P }
+
+	export enum Type {
+		OnOff = "devices.capabilities.on_off",
+		ColorSetting = "devices.capabilities.color_setting",
+		Mode = "devices.capabilities.mode",
+		Range = "devices.capabilities.range",
+		Toggle = "devices.capabilities.toggle"
 	}
->
 
-export type YandexColorSettingCapability = YandexBaseCapability<
-	CapabilityEnum.ColorSetting,
-	// state
-	{
-		instance: "hsv",
-		value: { h: number, s: number, v: number }
-	} &
-	{
-		instance: "rgb",
-		value: number
-	} &
-	{
-		instance: "temperature_k",
-		value: number
-	},
-	// parameters
-	{ color_model: "hsv" | "rgb" } &
-	{ temperature_k: { min: number, max: number } }
->
+	export type OnOff = Base<{
+		type: Type.OnOff,
+		state: {
+			instance: "on",
+			value: boolean
+		},
+		parameters: { split: boolean }
+	}>
 
-export type YandexRangeBrightness = {
-	parameters: {
-		instance: 'brightness',
-		unit: 'unit.percent',
-		range: any
+	export type Range = Base<
+		{ type: Type.Range } &
+		(PossibleRanges.Brightness)
+	>
+
+	export type ColorSetting = Base<{ type: Type.ColorSetting } & ({
+		state: {
+			instance: "rgb",
+			value: number
+		} | {
+			instance: "temperature_k",
+			value: number
+		} | {
+			instance: "hsv",
+			value: Record<"h" | "s" | "v", number>
+		}
+
+		parameters: ({
+			color_model: "hsv" | "rgb"
+		} | {
+			temperature_k: { min: number, max: number }
+		})
+	})>
+
+	export namespace PossibleRanges {
+		export type Brightness = {
+			parameters: {
+				instance: 'brightness',
+				unit: 'unit.percent',
+				range: any
+			}
+			state: { instance: 'brightness', value: number }
+		}
 	}
-	state: { instance: 'brightness', value: number }
+
 }
-
-export type YandexRangeCapability = YandexOnlyRequiredCapability<
-	CapabilityEnum.Range,
-	YandexRangeBrightness
->
-
-export type YandexCapability = YandexOnOffCapability | YandexColorSettingCapability | YandexRangeCapability
-
-export enum CapabilityEnum {
-	OnOff = "devices.capabilities.on_off",
-	ColorSetting = "devices.capabilities.color_setting",
-	Mode = "devices.capabilities.mode",
-	Range = "devices.capabilities.range",
-	Toggle = "devices.capabilities.toggle"
-}
-
 
 export type YandexDevice = {
 	id: string
@@ -90,6 +85,6 @@ export type YandexDevice = {
 	external_id: string
 	skill_id: string
 	household_id: string
-	capabilities: YandexCapability[]
+	capabilities: YandexCapability.Any[]
 	properties: any[]
 }

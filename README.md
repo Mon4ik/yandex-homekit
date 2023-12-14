@@ -11,7 +11,19 @@
 1. Установить через:
    - NPM:
      ```shell
-     npm i -g yandex-homekit
+     npm i -g yandex-homekit@latest
+     ```
+   - Вручную:
+     ```shell
+     gh repo clone Mon4ik/yandex-homekit
+     # git clone https://github.com/Mon4ik/yandex-homekit.git
+     
+     cd yandex-homekit
+     pnpm i
+     pnpm build
+     pnpm link .
+     
+     yandex-homekit
      ```
    - Docker:
      _пока что нету, сорри)_
@@ -32,7 +44,7 @@
      ```text
      http://<локальный IP сервера>:13370/callback
      ```
-4. Открываем `~/.yandex-homekit/config.json` и настраиваем конфиг:
+4. Открываем `~/.yandex-homekit/config.json` и заполняем конфиг:
    ```json
    {
      "client": {
@@ -52,7 +64,7 @@
    ```
 
 ## Известные ошибки
-- HomeKit не может сразу содержать `ColorTemperature` и `Hue/Saturation`, так что мне придётся танцевать с бубном для правильной работы лампочек с выбором кельвинов и цвета
+- HomeKit не может сразу содержать `ColorTemperature` и `Hue/Saturation`, так что мне придётся танцевать с бубном для правильной работы лампочек с выбором кельвинов и цвета [(#1)](https://github.com/Mon4ik/yandex-homekit/issues/1)
 
 [//]: # (## Поддержка)
 [//]: # (Я в одиночку не смогу поддерживать всё и вся, так что вы можете скидывать в Issues форматы реальных умений &#40;см. [CONTRIBUTION.md]&#40;&#41;&#41;)

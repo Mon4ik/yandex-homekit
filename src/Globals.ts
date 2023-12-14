@@ -3,6 +3,7 @@ import * as os from "os";
 import * as fs from "fs";
 import {Adapter, getAdapters} from "./adapters/index.js";
 import {Logger, pino} from "pino";
+import chalk from "chalk";
 
 export type ConfigFile = {
 	client: {
@@ -49,6 +50,10 @@ export class Globals {
 		return path.join(Globals.storagePath(), "persist");
 	}
 
+	static logsPath(): string {
+		return path.join(Globals.storagePath(), "logs")
+	}
+
 	static storagePath(): string {
 		return Globals.customStoragePath ? Globals.customStoragePath : path.join(os.homedir(), ".yandex-homekit");
 	}
@@ -62,16 +67,42 @@ export class Globals {
 	}
 
 	private static initLogger() {
-		this._logger = pino({
-			transport: {
+		const level = this._debug ? "trace" : "info"
+
+		fs.rmSync(path.join(this.logsPath(), "latest.log"), {force: true})
+
+		const targets: pino.TransportTargetOptions[] = [
+			{
+				target: 'pino/file',
+				level,
+				options: {
+					destination: path.join(this.logsPath(), "latest.log"),
+					mkdir: true
+				},
+			},
+			{
+				target: 'pino/file',
+				level,
+				options: {
+					destination: path.join(this.logsPath(), `${Date.now()}.log`),
+					mkdir: true
+				},
+			},
+			{
 				target: 'pino-pretty',
+				level,
 				options: {
 					colorize: true
-				}
-			},
-			level: this._debug ? "trace" : "info"
-		})
+				},
+			}
+		]
+
+		this._logger = pino({ level }, pino.transport({
+			targets
+		}))
+		this._logger.trace(`Logger Level: ${level}`)
 	}
+
 	public static getLogger() {
 		if (!this._logger) this.initLogger()
 		return this._logger
@@ -115,5 +146,12 @@ export class Globals {
 
 	static get adapters() {
 		return this._adapters
+	}
+
+	static abort() {
+		Globals.getLogger().trace("aborting...")
+		setImmediate(() => {
+			process.exit(1);
+		});
 	}
 }
