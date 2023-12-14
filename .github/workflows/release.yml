@@ -23,6 +23,12 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
 
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build package
+        run: pnpm build
+
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
