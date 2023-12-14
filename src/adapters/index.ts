@@ -2,8 +2,8 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 
 import {glob} from "glob";
-import {Capability} from "../Capability.js";
-import {Device} from "../Device.js";
+import {Capability} from "../yandex/Capability.js";
+import {Device} from "../yandex/Device.js";
 import {Characteristic, CharacteristicProps, CharacteristicValue, WithUUID} from "hap-nodejs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

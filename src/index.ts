@@ -20,15 +20,16 @@ program
 
 program.command('cleanup')
 	.description('Clean persist, or clean all app settings (by default cleans only cache)')
+	.argument("<entry>", "What to delete (persist, logs, all)")
 	.option("--all", "DELETES EVERYTHING (configs, cache)! Be careful!")
 	.option("-f, --force", "Delete without questions")
-	.action(async (options) => {
-		if (options.all) {
+	.action(async (entry: 'persist' | 'logs' | 'all', options) => {
+		async function promptDelete(path: string) {
 			if (!options.force) {
 				//@ts-ignore
 				const prompt = new Enquirer.Confirm({
 					name: 'question',
-					message: chalk.red`Delete ${chalk.bold(Globals.storagePath())}?`
+					message: chalk.red`Delete ${chalk.bold(path)}?`
 				});
 
 				const answer = await prompt.run()
@@ -37,24 +38,18 @@ program.command('cleanup')
 					process.exit(0)
 				}
 			}
-			fs.rmSync(Globals.storagePath(), {recursive: true, force: true})
+			fs.rmSync(path, {recursive: true, force: true})
+		}
+
+		if (entry === "persist") {
+			await promptDelete(Globals.persistPath())
+		} else if (entry === "logs") {
+			await promptDelete(Globals.logsPath())
+		} else if (entry === "all") {
+			await promptDelete(Globals.storagePath())
 		} else {
-			if (!options.force) {
-
-				//@ts-ignore
-				const prompt = new Enquirer.Confirm({
-					name: 'question',
-					message: chalk.red`Delete ${chalk.bold(Globals.persistPath())}?`
-				});
-
-				const answer = await prompt.run()
-				if (!answer) {
-					console.log(chalk.red("aborting..."))
-					process.exit(0)
-				}
-			}
-
-			fs.rmSync(Globals.persistPath(), {recursive: true, force: true})
+			console.error(chalk.red(`Entry "${entry}" isn't valid.`))
+			process.exit(1)
 		}
 
 	});
@@ -110,6 +105,8 @@ program.command('start')
 					}
 				)
 			})
+
+		// console.log("end?")
 	});
 
 program.parse(process.argv);

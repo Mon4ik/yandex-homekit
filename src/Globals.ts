@@ -69,7 +69,7 @@ export class Globals {
 	private static initLogger() {
 		const level = this._debug ? "trace" : "info"
 
-		fs.rmSync(path.join(this.logsPath(), "latest.log"), { force: true })
+		fs.rmSync(path.join(this.logsPath(), "latest.log"), {force: true})
 
 		const targets: pino.TransportTargetOptions[] = [
 			{
@@ -94,12 +94,13 @@ export class Globals {
 				options: {
 					colorize: true
 				},
-			},
+			}
 		]
 
-		this._logger = pino({}, pino.transport({
+		this._logger = pino({ level }, pino.transport({
 			targets
 		}))
+		this._logger.trace(`Logger Level: ${level}`)
 	}
 
 	public static getLogger() {
@@ -145,5 +146,12 @@ export class Globals {
 
 	static get adapters() {
 		return this._adapters
+	}
+
+	static abort() {
+		Globals.getLogger().trace("aborting...")
+		setImmediate(() => {
+			process.exit(1);
+		});
 	}
 }

@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-import type {YandexCapability} from "./types.js";
+import type {YandexCapability} from "../types.js";
 
 export class Capability {
 	private _capability: YandexCapability.Any

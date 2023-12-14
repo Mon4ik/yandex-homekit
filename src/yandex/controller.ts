@@ -1,7 +1,7 @@
 import * as hap from "hap-nodejs";
 import chalk from "chalk";
 
-import {Device} from "../Device.js";
+import {Device} from "./Device.js";
 import {Globals} from "../Globals.js";
 import {YandexAPI} from "./api.js";
 import {YandexDevice} from "../types.js";
@@ -106,7 +106,7 @@ export class YandexController {
 
 		if (!oauth.accessToken || Date.now() >= oauth.expiresAt) {
 			// token expired :(
-			Globals.getLogger().error("Token is expired. Please request new.")
+			Globals.getLogger().error("Token expired. Please request new.")
 
 			console.error("\n\n")
 			console.error(chalk.red.bold` ================================ TOKEN EXPIRED! ================================`)
@@ -115,7 +115,8 @@ export class YandexController {
 			console.error(chalk.red`      This file need to contain all the YandexOAuth client settings (id, secret)`)
 			console.error(chalk.red.bold` ================================================================================`)
 
-			process.exit(1)
+			Globals.abort()
+			return
 		}
 
 		await this.refreshToken()

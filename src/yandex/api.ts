@@ -1,63 +1,67 @@
-import axios from "axios";
+import axios, {AxiosRequestConfig} from "axios";
 import qs from "qs"
 import chalk from "chalk";
 
 import {Globals} from "../Globals.js";
 
-import type {GetDevicesResponse} from "../types.js";
+import type {GetDevicesResponse, YandexResponse} from "../types.js";
 
 export class YandexAPI {
 	public get token() {
 		return Globals.getOauth().accessToken
 	}
 
-	// IOT associated things
-	async getDevices() {
-		const resp = await axios<GetDevicesResponse>({
-			url: "https://api.iot.yandex.net/v1.0/user/info",
-			method: "GET",
+	public async request<T = YandexResponse<any>>(url: string, config: AxiosRequestConfig): Promise<T> {
+		const resp = await axios<T & YandexResponse<any>>(Object.assign({
+			url: `https://api.iot.yandex.net/v1.0${url}`,
 			headers: {
 				"Authorization": `Bearer ${this.token}`
 			},
 			validateStatus: () => true
-		})
+		}, config))
 
-		if (resp.data.status === "error") {
-			Globals.getLogger().error(chalk.bold`Error while getting devices`)
-			Globals.getLogger().error(` Please verify your token!`)
-
-			process.exit(1)
+		if (resp.data.status === "error" || resp.status !== 200) {
+			Globals.getLogger().trace("Got error from API.", resp)
+			throw Error("Error in API")
 		}
 
-		return resp.data.devices
+		return resp.data
+	}
+
+	// IOT associated things
+	async getDevices() {
+		try {
+			const resp = await this.request("/user/info", {})
+
+			return resp.devices
+		} catch (e) {
+			Globals.getLogger().error("Failed while getting devices from yandex. Did you authorized?")
+			Globals.getLogger().trace(e)
+			Globals.abort()
+			return []
+		}
 	}
 
 	async applyActions(devices: any): Promise<true> {
-		const resp = await axios<GetDevicesResponse>({
-			url: "https://api.iot.yandex.net/v1.0/devices/actions",
-			method: "POST",
-			headers: {
-				"Authorization": `Bearer ${this.token}`
-			},
-			data: devices,
-			validateStatus: () => true
-		})
+		try {
+			await this.request("/devices/actions", {
+				method: "POST",
+				data: devices
+			})
 
-		if (resp.data.status === "error") {
-			Globals.getLogger().error(`Error while updating devices.`, resp.data.message)
-			Globals.getLogger().error(`Please verify your token!`)
-
-			process.exit(1)
+			return true
+		} catch (e) {
+			Globals.getLogger().error("Failed while applying actions to yandex. Did you authorized?")
+			Globals.getLogger().trace(e)
+			Globals.abort()
 		}
-
-		return true
 	}
 
 	// Token associated things
 	async refreshToken() {
 		const refreshToken = Globals.getOauth().refreshToken
-
 		const client = Globals.getConfig().client
+
 		const authHeader = Buffer.from(`${client.id}:${client.secret}`).toString("base64")
 
 		const resp = await axios({
@@ -79,8 +83,8 @@ export class YandexAPI {
 
 		if (resp.data.error) {
 			Globals.getLogger().error(chalk.bold("error while refreshing token :("), resp.data.error, resp.data.error_description)
-
-			process.exit(1)
+			Globals.abort()
+			return
 		}
 
 		Globals.updateOauth({
@@ -112,8 +116,8 @@ export class YandexAPI {
 
 		if (resp.data.error) {
 			Globals.getLogger().error(chalk.bold("error while getting token :("), resp.data.error_description)
-
-			process.exit(1)
+			Globals.abort()
+			return
 		}
 
 		Globals.updateOauth({

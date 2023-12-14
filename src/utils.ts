@@ -4,6 +4,9 @@ import {Globals} from "./Globals.js";
 import semver from "semver/preload.js";
 import boxen from "boxen";
 import chalk from "chalk";
+import path from "path";
+import {fileURLToPath} from "url";
+import * as fs from "fs";
 
 const Service = hap.Service
 
@@ -27,7 +30,10 @@ export async function checkForUpdates() {
 	// latestRelease.tag_name = "v6.6.6"
 
 	// latest > current
-	if (semver.gt(semver.coerce(latestRelease.tag_name), semver.coerce(process.env.npm_package_version))) {
+	const __dirname = path.dirname(fileURLToPath(import.meta.url))
+	const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "package.json")).toString("utf-8"))
+
+	if (semver.gt(semver.coerce(latestRelease.tag_name), semver.coerce(packageJson.version))) {
 		Globals.getLogger().info(`Found new update (${latestRelease.tag_name})! Additional information in stdout`)
 
 		console.info(boxen([

@@ -1,6 +1,6 @@
 import {Adapter} from "./index.js";
-import {Capability} from "../Capability.js";
-import {Device} from "../Device.js";
+import {Capability} from "../yandex/Capability.js";
+import {Device} from "../yandex/Device.js";
 import {Characteristic, CharacteristicProps, Formats, Perms} from "hap-nodejs";
 
 import {YandexCapability} from "../types.js";
@@ -27,7 +27,6 @@ export default class BrightnessAdapter extends Adapter {
 	get(capability: Capability, device: Device): number {
 		const state = capability.state as RangeBrightness['state']
 
-		console.log(capability.parameters)
 		return state.value
 	}
 
