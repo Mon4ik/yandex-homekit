@@ -52,6 +52,7 @@ program.command('cleanup')
 			process.exit(1)
 		}
 
+			case "logs":
 	});
 
 program.command('oauth')
