@@ -41,18 +41,22 @@ program.command('cleanup')
 			fs.rmSync(path, {recursive: true, force: true})
 		}
 
-		if (entry === "persist") {
-			await promptDelete(Globals.persistPath())
-		} else if (entry === "logs") {
-			await promptDelete(Globals.logsPath())
-		} else if (entry === "all") {
-			await promptDelete(Globals.storagePath())
-		} else {
-			console.error(chalk.red(`Entry "${entry}" isn't valid.`))
-			process.exit(1)
-		}
 
+
+		switch(entry) {
+			case "persist":
+				await promptDelete(Globals.persistPath());
+				break;
 			case "logs":
+				await promptDelete(Globals.logsPath());
+				break;
+			case "all":
+				await promptDelete(Globals.storagePath());
+				break;
+			default:
+				console.error(chalk.red(`Entry "${entry}" isn't valid.`));
+				process.exit(1);
+		}
 	});
 
 program.command('oauth')
