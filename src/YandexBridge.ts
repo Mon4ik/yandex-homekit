@@ -35,7 +35,7 @@ export class YandexBridge {
 
 
         this.bridge.on("paired", () => {
-            // console.log("🔗 Bridge successfully paired!")
+            Globals.getLogger().info(`🔗 Bridge successfully paired!`)
         })
 
         this.bridgeSetup(mac)
@@ -53,7 +53,7 @@ export class YandexBridge {
         const firmwareRevision = accessoryInformation.getCharacteristic(Characteristic.FirmwareRevision)
 
         model.setValue("Yandex HomeKit Bridge")
-        manufacturer.setValue("idkncc")
+        manufacturer.setValue("@idkncc")
         serialNumber.setValue(mac)
         firmwareRevision.setValue(process.env.npm_package_version ?? '0.0.0')
     }

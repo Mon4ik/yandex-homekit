@@ -1,9 +1,9 @@
-import path from "path";
 import * as os from "os";
 import * as fs from "fs";
+import path from "path";
+
 import { Adapter, getAdapters } from "./adapters/index.js";
 import { Logger, pino } from "pino";
-import chalk from "chalk";
 
 export type ConfigFile = {
     client: {
@@ -36,6 +36,7 @@ export class Globals {
     private static customStoragePath?: string;
     private static _adapters: Adapter[] = []
     private static _debug = false
+    private static _quiet = false
     private static _logger: Logger
 
     static accessTokenPath(): string {
@@ -66,6 +67,14 @@ export class Globals {
         Globals._debug = value
     }
 
+    static quiet(): boolean {
+        return Globals._quiet
+    }
+
+    static setQuiet(value: boolean) {
+        Globals._quiet = value
+    }
+
     private static initLogger() {
         const level = this._debug ? "trace" : "info"
 
@@ -87,15 +96,18 @@ export class Globals {
                     destination: path.join(this.logsPath(), `${Date.now()}.log`),
                     mkdir: true
                 },
-            },
-            {
+            }
+        ]
+
+        if (!this._quiet) {
+            targets.push({
                 target: 'pino-pretty',
                 level,
                 options: {
                     colorize: true
                 },
-            }
-        ]
+            })
+        }
 
         this._logger = pino({ level }, pino.transport({
             targets

@@ -91,6 +91,8 @@ program.command('start')
     .option("--debug", "Enables debug mode")
     .action(async (options) => {
         Globals.setDebug(options.debug ?? false)
+        Globals.setQuiet(options.q ?? false)
+
         if (!options.noUpdates) await checkForUpdates()
 
         const bridge = new YandexBridge()
