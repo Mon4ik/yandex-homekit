@@ -47,18 +47,18 @@ export class Capability {
             // then we just return for this all
             return
         }
-        // 2. Updated timestamp on yandex is more, than local
+
+        // 2. Updated timestamp on yandex is bigger, than local timestamp
         if (yandexCapability.last_updated >= this.last_updated) {
-            // then we sync ours
-            this._capability = yandexCapability
+            this._capability = yandexCapability // sync Yandex's
             return;
         }
 
-        // 3. Updated timestamp on yandex is lower, than local
-        //       --------|---------|---->
-        //       yandex -^   local-^    ^- now
+        // 3. Updated timestamp on Yandex is less, than local
+        //       --------|--------|---->
+        //       Yandex -^  local-^    ^- now
         if (yandexCapability.last_updated < this.last_updated) {
-            // then we send to yandex
+            // Then we send to Yandex
             this._pendingActions.set(this.type, _.clone(this._capability.state))
         }
     }

@@ -36,7 +36,7 @@ export abstract class Adapter {
     abstract verify(capability: Capability): boolean
 
     /**
-     * Method, which will be executed to transform data from YandexAPI standards to Apple's standards
+     * Method, which will be executed to transform data from Yandex standards to Apple's standards
      *
      * @param capability {Capability} - Yandex's capability (contains state and params)
      * @param device {Device} - Device, which contains Yandex's capabilities and Homekit Accessory
@@ -49,7 +49,7 @@ export abstract class Adapter {
      * Method, which will be executed to transform data from Apple's standards to YandexAPI standards
      *
      * @note
-     *  **Function nothing returns**. Apply all transforms to `capability` parameter!
+     *  **Function returns nothing**. Apply all transforms to `capability` parameter!
      *
      * @param value {CharacteristicValue} - Characteristic value from homekit
      * @param capability {Capability} - Yandex's capability (contains state and params)

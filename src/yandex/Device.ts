@@ -54,7 +54,6 @@ export class Device {
         return this._capabilities
     }
 
-
     jsonActions() {
         const pendingActions = _.clone(this.pendingActions)
         this.pendingActions.clear()
@@ -78,7 +77,7 @@ export class Device {
 
             const adapter = adapters.find((adp) => adp.verify(capability))
             if (!adapter) {
-                Globals.getLogger().warn(`The capability "${capability.type}" isn't supporting (no such adapters for it). So you cannot control this capability through HomeKit. But it CAN be implemented in new yandex-homekit version, so check it out.`)
+                Globals.getLogger().warn(`The capability "${capability.type}" doesn't supported (no such adapters for it). You cannot control this capability through HomeKit. But it COULD be implemented in new yandex-homekit version, so check it out.`)
                 continue
             }
 

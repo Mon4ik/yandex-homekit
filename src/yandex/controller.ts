@@ -68,7 +68,7 @@ export class YandexController {
             }
         }
 
-        // sendin' to yandex
+        // sendin' to Yandex
         const devicesActions = this.mountedDevices
             .map((dev) => ({
                 id: dev.id,
@@ -111,8 +111,10 @@ export class YandexController {
             console.error("\n\n")
             console.error(chalk.red.bold` ================================ TOKEN EXPIRED! ================================`)
             console.error(chalk.red`  (*) Run \`${chalk.underline("yandex-homekit oauth")}\` to start oauth server`)
-            console.error(chalk.red`  (!) Also verify the file: ${chalk.underline(Globals.configPath())}!`)
+            console.error(chalk.red`  (!) Also verify the ${chalk.underline(Globals.configPath())}!`)
             console.error(chalk.red`      This file need to contain all the YandexOAuth client settings (id, secret)`)
+            console.error(chalk.red`  `)
+            console.error(chalk.red`  (i) For more information, check out README.md`)
             console.error(chalk.red.bold` ================================================================================`)
 
             Globals.abort()

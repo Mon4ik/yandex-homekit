@@ -28,14 +28,15 @@ export class YandexAPI {
         return resp.data
     }
 
-    // IOT associated things
+    // IOT associated things //
+
     async getDevices() {
         try {
             const resp = await this.request("/user/info", {})
 
             return resp.devices
         } catch (e) {
-            Globals.getLogger().error("Failed while getting devices from yandex. Did you authorized?")
+            Globals.getLogger().error("Failed to get devices from yandex. Did you authorize?")
             Globals.getLogger().trace(e)
             Globals.abort()
             return []
@@ -51,13 +52,14 @@ export class YandexAPI {
 
             return true
         } catch (e) {
-            Globals.getLogger().error("Failed while applying actions to yandex. Did you authorized?")
+            Globals.getLogger().error("Failed to apply actions to yandex. Did you authorize?")
             Globals.getLogger().trace(e)
             Globals.abort()
         }
     }
 
-    // Token associated things
+    // Token associated things //
+
     async refreshToken() {
         const refreshToken = Globals.getOauth().refreshToken
         const client = Globals.getConfig().client
@@ -82,7 +84,12 @@ export class YandexAPI {
         })
 
         if (resp.data.error) {
-            Globals.getLogger().error(chalk.bold("error while refreshing token :("), resp.data.error, resp.data.error_description)
+            Globals.getLogger()
+                .error(
+                    chalk.bold("Error while refreshing the token:"),
+                    resp.data.error,
+                    resp.data.error_description
+                )
             Globals.abort()
             return
         }

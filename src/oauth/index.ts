@@ -51,7 +51,7 @@ export class OAuthServer {
             res.send([
                 "<div>",
                 `	<h1 style="font-family: 'Arial Black',serif; font-size: xx-large">Successfully authorized!</h1>`,
-                `	<p style="font-family: 'Arial',serif; font-size: large">Now you can execute <code style="padding: 6px; border-radius: 5px;">yandex-homekit start ...</code> to start the bridge :D</p>`,
+                `	<p style="font-family: 'Arial',serif; font-size: large">Now you can execute <code style="padding: 6px; border-radius: 5px;">yandex-homekit start ...</code> to start the bridge.</p>`,
                 "</div>"
             ].join(""))
         })
