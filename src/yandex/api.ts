@@ -1,131 +1,151 @@
-import axios, {AxiosRequestConfig} from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import qs from "qs"
 import chalk from "chalk";
 
-import {Globals} from "../Globals.js";
+import { Globals } from "../Globals.js";
 
-import type {GetDevicesResponse, YandexResponse} from "../types.js";
+import type { GetDevicesResponse, YandexDevice, YandexResponse } from "../types.js";
 
+/**
+ * Yandex API
+ */
 export class YandexAPI {
-	public get token() {
-		return Globals.getOauth().accessToken
-	}
+    public get token() {
+        return Globals.getOauth().accessToken
+    }
 
-	public async request<T = YandexResponse<any>>(url: string, config: AxiosRequestConfig): Promise<T> {
-		const resp = await axios<T & YandexResponse<any>>(Object.assign({
-			url: `https://api.iot.yandex.net/v1.0${url}`,
-			headers: {
-				"Authorization": `Bearer ${this.token}`
-			},
-			validateStatus: () => true
-		}, config))
+    public async request<T = YandexResponse<any>>(url: string, config: AxiosRequestConfig): Promise<T> {
+        const resp = await axios<T & YandexResponse<any>>(Object.assign({
+            url: `https://api.iot.yandex.net/v1.0${url}`,
+            headers: {
+                "Authorization": `Bearer ${this.token}`
+            },
+            validateStatus: () => true
+        }, config))
 
-		if (resp.data.status === "error" || resp.status !== 200) {
-			Globals.getLogger().trace("Got error from API.", resp)
-			throw Error("Error in API")
-		}
+        if (resp.data.status === "error" || resp.status !== 200) {
+            Globals.getLogger().trace("Got error from API.", resp)
+            throw Error("Error in API")
+        }
 
-		return resp.data
-	}
+        return resp.data
+    }
 
-	// IOT associated things
-	async getDevices() {
-		try {
-			const resp = await this.request("/user/info", {})
+    // IOT associated things //
 
-			return resp.devices
-		} catch (e) {
-			Globals.getLogger().error("Failed while getting devices from yandex. Did you authorized?")
-			Globals.getLogger().trace(e)
-			Globals.abort()
-			return []
-		}
-	}
+    /**
+     * Request yandex devices
+     */
+    async getDevices(): Promise<YandexDevice[]> {
+        try {
+            const resp = await this.request("/user/info", {})
 
-	async applyActions(devices: any): Promise<true> {
-		try {
-			await this.request("/devices/actions", {
-				method: "POST",
-				data: devices
-			})
+            return resp.devices
+        } catch (e) {
+            Globals.getLogger().error("Failed to get devices from yandex. Did you authorize?")
+            Globals.getLogger().trace(e)
+            Globals.abort()
+            return []
+        }
+    }
 
-			return true
-		} catch (e) {
-			Globals.getLogger().error("Failed while applying actions to yandex. Did you authorized?")
-			Globals.getLogger().trace(e)
-			Globals.abort()
-		}
-	}
+    /**
+     * Apply actions to Yandex
+     */
+    async applyActions(devices: any): Promise<true> {
+        try {
+            await this.request("/devices/actions", {
+                method: "POST",
+                data: devices
+            })
 
-	// Token associated things
-	async refreshToken() {
-		const refreshToken = Globals.getOauth().refreshToken
-		const client = Globals.getConfig().client
+            return true
+        } catch (e) {
+            Globals.getLogger().error("Failed to apply actions to yandex. Did you authorize?")
+            Globals.getLogger().trace(e)
+            Globals.abort()
+        }
+    }
 
-		const authHeader = Buffer.from(`${client.id}:${client.secret}`).toString("base64")
+    // Token associated things //
 
-		const resp = await axios({
-			url: "https://oauth.yandex.ru/token",
-			method: 'POST',
+    /**
+     * Refresh Yandex's token
+     */
+    async refreshToken() {
+        const refreshToken = Globals.getOauth().refreshToken
+        const client = Globals.getConfig().client
 
-			headers: {
-				'content-type': 'application/x-www-form-urlencoded',
-				"authorization": `Basic ${authHeader}`
-			},
+        const authHeader = Buffer.from(`${client.id}:${client.secret}`).toString("base64")
 
-			data: qs.stringify({
-				grant_type: "refresh_token",
-				refresh_token: refreshToken
-			}),
+        const resp = await axios({
+            url: "https://oauth.yandex.ru/token",
+            method: 'POST',
 
-			validateStatus: () => true
-		})
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                "authorization": `Basic ${authHeader}`
+            },
 
-		if (resp.data.error) {
-			Globals.getLogger().error(chalk.bold("error while refreshing token :("), resp.data.error, resp.data.error_description)
-			Globals.abort()
-			return
-		}
+            data: qs.stringify({
+                grant_type: "refresh_token",
+                refresh_token: refreshToken
+            }),
 
-		Globals.updateOauth({
-			accessToken: resp.data.access_token,
-			refreshToken: resp.data.refresh_token,
-			expiresAt: Date.now() + resp.data.expires_in * 1000
-		})
-	}
+            validateStatus: () => true
+        })
 
-	async exchangeToken(code: string) {
-		const client = Globals.getConfig().client
-		const authHeader = Buffer.from(`${client.id}:${client.secret}`).toString("base64")
+        if (resp.data.error) {
+            Globals.getLogger()
+                .error(
+                    chalk.bold("Error while refreshing the token:"),
+                    resp.data.error,
+                    resp.data.error_description
+                )
+            Globals.abort()
+            return
+        }
 
-		const resp = await axios({
-			url: "https://oauth.yandex.ru/token",
-			method: 'POST',
-			headers: {
-				'content-type': 'application/x-www-form-urlencoded',
-				"authorization": `Basic ${authHeader}`
-			},
-			data: qs.stringify({
-				grant_type: "authorization_code",
-				code
-			}),
+        Globals.updateOauth({
+            accessToken: resp.data.access_token,
+            refreshToken: resp.data.refresh_token,
+            expiresAt: Date.now() + resp.data.expires_in * 1000
+        })
+    }
 
-			validateStatus: () => true
+    /**
+     * Exchange code to token
+     */
+    async exchangeToken(code: string) {
+        const client = Globals.getConfig().client
+        const authHeader = Buffer.from(`${client.id}:${client.secret}`).toString("base64")
 
-		})
+        const resp = await axios({
+            url: "https://oauth.yandex.ru/token",
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                "authorization": `Basic ${authHeader}`
+            },
+            data: qs.stringify({
+                grant_type: "authorization_code",
+                code
+            }),
 
-		if (resp.data.error) {
-			Globals.getLogger().error(chalk.bold("error while getting token :("), resp.data.error_description)
-			Globals.abort()
-			return
-		}
+            validateStatus: () => true
 
-		Globals.updateOauth({
-			accessToken: resp.data.access_token,
-			refreshToken: resp.data.refresh_token,
-			expiresAt: Date.now() + resp.data.expires_in * 1000
-		})
-	}
+        })
 
+        if (resp.data.error) {
+            Globals.getLogger().error(chalk.bold("error while getting token :("), resp.data.error_description)
+            Globals.abort()
+            return
+        }
 
+        Globals.updateOauth({
+            accessToken: resp.data.access_token,
+            refreshToken: resp.data.refresh_token,
+            expiresAt: Date.now() + resp.data.expires_in * 1000
+        })
+    }
 }

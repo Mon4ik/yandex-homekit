@@ -1,129 +1,132 @@
-import {Accessory, Categories, Characteristic, Service} from "hap-nodejs";
-import {SERVICE_MAP} from "../utils.js";
-import {Capability} from "./Capability.js";
+import { Accessory, Categories, Characteristic, Service } from "hap-nodejs";
+import { SERVICE_MAP } from "../utils.js";
+import { Capability } from "./Capability.js";
 
-import type {YandexDevice} from "../types.js";
-import {Globals} from "../Globals.js";
+import type { YandexDevice } from "../types.js";
+import { Globals } from "../Globals.js";
 import chalk from "chalk";
 import * as hap from "hap-nodejs";
 import _ from "lodash";
 
+/**
+ * Class, representing yandex Device, that also
+ * syncs with Homekit
+ */
 export class Device {
-	private readonly _accessory: Accessory
-	private _service: Service
+    private readonly _accessory: Accessory
+    private _service: Service
 
-	private readonly _initialDevice: YandexDevice
-	private readonly _capabilities: Capability[]
+    private readonly _initialDevice: YandexDevice
+    private readonly _capabilities: Capability[]
 
-	private pendingActions = new Map<string, Record<string, any>>()
+    private pendingActions = new Map<string, Record<string, any>>()
 
-	constructor(initialDevice: YandexDevice) {
-		this._initialDevice = initialDevice
-		this._accessory = new Accessory(initialDevice.name, hap.uuid.generate(`yhk.accessory.${initialDevice.id}`))
-		this._capabilities = initialDevice.capabilities.map((cap) => new Capability(cap, this.pendingActions))
+    constructor(initialDevice: YandexDevice) {
+        this._initialDevice = initialDevice
+        this._accessory = new Accessory(initialDevice.name, hap.uuid.generate(`yhk.accessory.${initialDevice.id}`))
+        this._capabilities = initialDevice.capabilities.map((cap) => new Capability(cap, this.pendingActions))
 
-		this.initAccessory()
-	}
+        this.initAccessory()
+    }
 
-	get homekitAccessory() {
-		return this._accessory
-	}
+    get homekitAccessory() {
+        return this._accessory
+    }
 
-	get homekitService() {
-		return this._service
-	}
+    get homekitService() {
+        return this._service
+    }
 
-	// Basic YandexAPI fields
-	get id() {
-		return this._initialDevice.id
-	}
+    // Basic YandexAPI fields
 
-	get type() {
-		return this._initialDevice.type
-	}
+    get id() {
+        return this._initialDevice.id
+    }
 
-	get name() {
-		return this._initialDevice.name
-	}
+    get type() {
+        return this._initialDevice.type
+    }
 
-	get initialDevice() {
-		return this._initialDevice
-	}
+    get name() {
+        return this._initialDevice.name
+    }
 
-	get capabilities() {
-		return this._capabilities
-	}
+    get initialDevice() {
+        return this._initialDevice
+    }
+
+    get capabilities() {
+        return this._capabilities
+    }
+
+    jsonActions() {
+        const pendingActions = _.clone(this.pendingActions)
+        this.pendingActions.clear()
 
 
-	jsonActions() {
-		const pendingActions = _.clone(this.pendingActions)
-		this.pendingActions.clear()
+        return Array.from(pendingActions)
+            .map(([type, state]) => ({
+                type, state
+            }))
+    }
 
+    private async initCapabilities() {
+        const adapters = Globals.adapters
 
-		return Array.from(pendingActions)
-			.map(([type, state]) => ({
-				type, state
-			}))
-	}
+        for (const capability of this._capabilities) {
+            Globals.getLogger().trace(capability)
+            if (capability.state === null) {
+                Globals.getLogger().warn(`The capability "${capability.type}" is null. Please, check on yandex, that's you setup device "${this._initialDevice.name}".`)
+                continue
+            }
 
-	private async initCapabilities() {
-		const adapters = Globals.adapters
+            const adapter = adapters.find((adp) => adp.verify(capability))
+            if (!adapter) {
+                Globals.getLogger().warn(`The capability "${capability.type}" doesn't supported (no such adapters for it). You cannot control this capability through HomeKit. But it COULD be implemented in new yandex-homekit version, so check it out.`)
+                continue
+            }
 
-		for (const capability of this._capabilities) {
-			Globals.getLogger().trace(capability)
-			if (capability.state === null) {
-				Globals.getLogger().warn(`The capability "${capability.type}" is null. Please, check on yandex, that's you setup device "${this._initialDevice.name}".`)
-				continue
-			}
+            const characteristic = this._service.getCharacteristic(adapter.characteristic)
 
-			const adapter = adapters.find((adp) => adp.verify(capability))
-			if (!adapter) {
-				Globals.getLogger().warn(`The capability "${capability.type}" isn't supporting (no such adapters for it). So you cannot control this capability through HomeKit. But it CAN be implemented in new yandex-homekit version, so check it out.`)
-				continue
-			}
+            characteristic.setProps(adapter.getProps(capability))
+            characteristic.on("get", (cb) => {
+                try {
+                    const result = adapter.get(capability, this)
+                    Globals.getLogger().trace(`[GET] ${characteristic.displayName} < ${result}`)
+                    cb(undefined, result)
+                } catch (e) {
+                    cb(e)
+                }
+            })
 
-			const characteristic = this._service.getCharacteristic(adapter.characteristic)
+            characteristic.on("set", (value, cb) => {
+                try {
+                    Globals.getLogger().trace(`[SET] ${characteristic.displayName} < ${value}`)
 
-			characteristic.setProps(adapter.getProps(capability))
-			characteristic.on("get", (cb) => {
-				try {
-					const result = adapter.get(capability, this)
-					Globals.getLogger().trace(`[GET] ${characteristic.displayName} < ${result}`)
-					cb(undefined, result)
-				} catch (e) {
-					cb(e)
-				}
-			})
+                    adapter.set(value, capability, this)
+                    cb(null)
+                } catch (e) {
+                    Globals.getLogger().error(`[SET] ${characteristic.displayName} < (ERR!)`, e)
+                    cb(e)
+                }
+            })
+        }
+    }
 
-			characteristic.on("set", (value, cb) => {
-				try {
-					Globals.getLogger().trace(`[SET] ${characteristic.displayName} < ${value}`)
+    private async initAccessory() {
+        // information service
+        const accessoryInformation = this._accessory.getService(Service.AccessoryInformation)
 
-					adapter.set(value, capability, this)
-					cb(null)
-				} catch (e) {
-					Globals.getLogger().error(`[SET] ${characteristic.displayName} < (ERR!)`, e)
-					cb(e)
-				}
-			})
-		}
-	}
+        const serialNumber = accessoryInformation.getCharacteristic(Characteristic.SerialNumber)
+        serialNumber.setValue(this._initialDevice.skill_id)
 
-	private async initAccessory() {
-		// information service
-		const accessoryInformation = this._accessory.getService(Service.AccessoryInformation)
+        // main service
+        const AccessoryService = (SERVICE_MAP.get(this._initialDevice.type) ?? Service.Switch) as typeof Service
 
-		const serialNumber =  accessoryInformation.getCharacteristic(Characteristic.SerialNumber)
-		serialNumber.setValue(this._initialDevice.skill_id)
+        this._service = new AccessoryService(this._initialDevice.name, this._initialDevice.name + this._initialDevice.id)
 
-		// main service
-		const AccessoryService = (SERVICE_MAP.get(this._initialDevice.type) ?? Service.Switch) as typeof Service
+        await this.initCapabilities()
 
-		this._service = new AccessoryService(this._initialDevice.name, this._initialDevice.name + this._initialDevice.id)
-
-		await this.initCapabilities()
-
-		this._accessory.addService(this._service)
-		// service.getCharacteristic()
-	}
+        this._accessory.addService(this._service)
+    }
 }
