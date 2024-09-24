@@ -18,7 +18,11 @@ export const SERVICE_MAP = new Map<string, typeof Service>([
 export async function checkForUpdates() {
     const resp = await axios("https://api.github.com/repos/Mon4ik/yandex-homekit/releases", { validateStatus: () => true })
     if (resp.data.message || !Array.isArray(resp.data) || resp.status >= 400) {
-        Globals.getLogger().error("Got error while checking for updates.")
+        Globals.getLogger().error("Couldn't check for updates. Ignoring updates...")
+
+        Globals.getLogger().debug(`  Status : ${resp.status}`)
+        Globals.getLogger().debug(`  Message: ${resp.data.message}`)
+
         return
     }
 
@@ -42,5 +46,7 @@ export async function checkForUpdates() {
             chalk.green` $ ` + chalk.bold`npm i -g yandex-homekit@latest`
         ].join("\n"), { padding: 0.5, borderStyle: "round", dimBorder: true, textAlignment: "center" }));
         console.info(chalk.grey`Additional information: ` + chalk.grey.bold.underline(latestRelease.html_url))
+    } else {
+        Globals.getLogger().debug(`Didn't find new updates. Latest: ${latestRelease.tag_name}`)
     }
 }

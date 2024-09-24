@@ -19,7 +19,7 @@ program
     .version("1.0.0")
 
 program.command('cleanup')
-    .description('Clean persist, or clean all app settings (by default cleans only cache)')
+    .description('Clean persist, logs or all app settings (by default cleans only cache)')
     .argument("<entry>", "What to delete (persist, logs, all)")
     .option("--all", "DELETES EVERYTHING (configs, cache)! Be careful!")
     .option("-f, --force", "Delete without questions")
@@ -40,8 +40,6 @@ program.command('cleanup')
             }
             fs.rmSync(path, { recursive: true, force: true })
         }
-
-
 
         switch (entry) {
             case "persist":
@@ -86,14 +84,14 @@ program.command('oauth')
 
 program.command('start')
     .description('Starts bridge')
-    .option("-q", "Start quietly (no QRCodes, codes)")
+    .option("-q, --quiet", "Start quietly (no QRCodes, codes)")
     .option("-U, --noUpdates", "Don't check updates")
     .option("--debug", "Enables debug mode")
     .action(async (options) => {
         Globals.setDebug(options.debug ?? false)
-        Globals.setQuiet(options.q ?? false)
+        Globals.setQuiet(options.quiet ?? false)
 
-        if (!options.noUpdates) await checkForUpdates()
+        if (!(options.noUpdates ?? false) && !(options.quiet ?? false)) await checkForUpdates()
 
         const bridge = new YandexBridge()
 
@@ -112,8 +110,6 @@ program.command('start')
                     }
                 )
             })
-
-        // console.log("end?")
     });
 
 program.parse(process.argv);
