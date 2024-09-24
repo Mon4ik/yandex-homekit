@@ -7,9 +7,9 @@ import { YandexAPI } from "./api.js";
 import { YandexDevice } from "../types.js";
 
 /*
- * Controller for:
- *  - Syncing devices
- *  - Managing token
+ * Yandex Controller that:
+ *  - Sync devices
+ *  - Manage token
  */
 export class YandexController {
     private readonly bridge: hap.Bridge
@@ -97,10 +97,12 @@ export class YandexController {
         await this.yandexAPI.refreshToken()
 
         // update interval
-        this.refreshAt = Globals.getOauth().expiresAt - 15_000 // expiresAt - 15 secs, becoz network speed
+        this.refreshAt = Globals.getOauth().expiresAt - 15_000 // expiresAt - 15 secs
     }
 
-    /* Verify existing token, and(or) create new */
+    /**
+     * Verify existing token, and(or) create new
+     */
     private async tokenVerify() {
         const oauth = Globals.getOauth()
 

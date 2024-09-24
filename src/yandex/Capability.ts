@@ -2,6 +2,11 @@ import _ from "lodash"
 
 import type { YandexCapability } from "../types.js";
 
+/**
+ * Yandex Capability, property of a `Device`, that describes its capabilities.
+ *
+ * @see https://yandex.ru/dev/dialogs/smart-home/doc/ru/concepts/capability-types
+ */
 export class Capability {
     private _capability: YandexCapability.Any
     private _pendingActions: Map<string, Record<string, any>>

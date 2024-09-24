@@ -4,8 +4,11 @@ import chalk from "chalk";
 
 import { Globals } from "../Globals.js";
 
-import type { GetDevicesResponse, YandexResponse } from "../types.js";
+import type { GetDevicesResponse, YandexDevice, YandexResponse } from "../types.js";
 
+/**
+ * Yandex API
+ */
 export class YandexAPI {
     public get token() {
         return Globals.getOauth().accessToken
@@ -30,7 +33,10 @@ export class YandexAPI {
 
     // IOT associated things //
 
-    async getDevices() {
+    /**
+     * Request yandex devices
+     */
+    async getDevices(): Promise<YandexDevice[]> {
         try {
             const resp = await this.request("/user/info", {})
 
@@ -43,6 +49,9 @@ export class YandexAPI {
         }
     }
 
+    /**
+     * Apply actions to Yandex
+     */
     async applyActions(devices: any): Promise<true> {
         try {
             await this.request("/devices/actions", {
@@ -60,6 +69,9 @@ export class YandexAPI {
 
     // Token associated things //
 
+    /**
+     * Refresh Yandex's token
+     */
     async refreshToken() {
         const refreshToken = Globals.getOauth().refreshToken
         const client = Globals.getConfig().client
@@ -101,6 +113,9 @@ export class YandexAPI {
         })
     }
 
+    /**
+     * Exchange code to token
+     */
     async exchangeToken(code: string) {
         const client = Globals.getConfig().client
         const authHeader = Buffer.from(`${client.id}:${client.secret}`).toString("base64")
@@ -133,6 +148,4 @@ export class YandexAPI {
             expiresAt: Date.now() + resp.data.expires_in * 1000
         })
     }
-
-
 }

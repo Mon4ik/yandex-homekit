@@ -8,6 +8,10 @@ import chalk from "chalk";
 import * as hap from "hap-nodejs";
 import _ from "lodash";
 
+/**
+ * Class, representing yandex Device, that also
+ * syncs with Homekit
+ */
 export class Device {
     private readonly _accessory: Accessory
     private _service: Service
@@ -34,6 +38,7 @@ export class Device {
     }
 
     // Basic YandexAPI fields
+
     get id() {
         return this._initialDevice.id
     }
@@ -123,6 +128,5 @@ export class Device {
         await this.initCapabilities()
 
         this._accessory.addService(this._service)
-        // service.getCharacteristic()
     }
 }
