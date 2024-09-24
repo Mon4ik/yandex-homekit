@@ -97,7 +97,7 @@ program.command('start')
 
         bridge.publish()
             .then(([info, uri]) => {
-                if (options.q) return
+                if (options.quiet) return
 
                 Globals.getLogger().info(`🚀 Bridge started at port :${info.port}`)
 
