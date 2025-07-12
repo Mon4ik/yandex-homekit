@@ -118,7 +118,7 @@ export class Device {
         const accessoryInformation = this._accessory.getService(Service.AccessoryInformation)
 
         const serialNumber = accessoryInformation.getCharacteristic(Characteristic.SerialNumber)
-        serialNumber.setValue(this._initialDevice.skill_id)
+        serialNumber.setValue(this._initialDevice.id)
 
         // main service
         const AccessoryService = (SERVICE_MAP.get(this._initialDevice.type) ?? Service.Switch) as typeof Service
