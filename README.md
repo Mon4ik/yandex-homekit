@@ -1,11 +1,11 @@
 # Yandex HomeKit
 Добавляет устройства из Умного Дома Яндекса в HomeKit
 
-> **Note**
+> [!CAUTION]
 > 
-> Это перезапущенная версия [Mon4ik/homebridge-yandex](https://github.com/Mon4ik/homebridge-yandex).
+> Разработка проекта прекращена. [issue](https://github.com/Mon4ik/yandex-homekit/issues/15)
 >
-> Старая версия имела множество багов и не самую лучшую структуру, но теперь всё будет намного лучше
+> Как альтернативу, могу посоветовать [Home Assistant](https://www.home-assistant.io).
  
 ## Установка и запуск
 1. Установить через:
